@@ -16,6 +16,8 @@
 
 package org.moxieapps.gwt.highcharts.client;
 
+import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.core.client.JsArrayString;
 import org.moxieapps.gwt.highcharts.client.labels.StackLabels;
 import org.moxieapps.gwt.highcharts.client.labels.YAxisLabels;
 
@@ -43,6 +45,51 @@ public class YAxis extends Axis<YAxis> {
      */
     YAxis(BaseChart chart) {
         super(chart);
+    }
+
+    /**
+     * Sets category names to use for the xAxis (instead of using numbers).  If categories are present for the
+     * xAxis, names are used instead of numbers for that axis. Example: setCategories("Apples", "Bananas", "Oranges").
+     * Defaults to an empty array, which will use numbers for the categories instead of names when categories
+     * are present.
+     * <p/>
+     * Note that this method will automatically redraw the categories on the chart if invoked after the
+     * chart has been rendered.  For more control over when the categories are redrawn, you can utilize
+     * the {@link #setCategories(boolean, String...)} method instead.
+     *
+     * @param categories An array of category names to use for the axis.
+     * @return A reference to this {@link XAxis} instance for convenient method chaining.
+     */
+    public YAxis setCategories(String... categories) {
+        return this.setCategories(true, categories);
+    }
+
+    /**
+     * Sets category names to use for the xAxis (instead of using numbers), explicitly controlling whether
+     * or not the axis will be redrawn in the case that the chart has already been rendered to the DOM.
+     * If categories are present for the xAxis, names are used instead of numbers for that axis.
+     * Example: setCategories("Apples", "Bananas", "Oranges"). Defaults to an empty array, which will
+     * use numbers for the categories instead of names when categories are present.
+     * <p/>
+     *
+     * @param redraw     Whether to redraw the axis or wait for an explicit call to {@link org.moxieapps.gwt.highcharts.client.BaseChart#redraw()}
+     * @param categories An array of category names to use for the axis.
+     * @return A reference to this {@link XAxis} instance for convenient method chaining.
+     * @since 1.1.1
+     */
+    public YAxis setCategories(boolean redraw, String... categories) {
+        final JavaScriptObject nativeAxis = getNativeAxis();
+        if (nativeAxis != null) {
+            JsArrayString jsArray = JavaScriptObject.createArray().<JsArrayString>cast();
+            for (int i = 0; i < categories.length; i++) {
+                String category = categories[i];
+                jsArray.set(i, category);
+            }
+            nativeSetCategories(nativeAxis, jsArray, redraw);
+            return this;
+        } else {
+            return this.setOption("categories", categories);
+        }
     }
 
     /**
@@ -143,4 +190,7 @@ public class YAxis extends Axis<YAxis> {
         return stackLabels;
     }
 
+    private static native void nativeSetCategories(JavaScriptObject nativeAxis, JsArrayString categories, boolean redraw) /*-{
+        return nativeAxis.setCategories(categories, redraw);
+    }-*/;
 }
