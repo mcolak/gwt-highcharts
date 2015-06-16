@@ -841,6 +841,20 @@ public abstract class Axis<T extends Axis> extends Configurable<T> {
     }
 
     /**
+     * Convenience method for setting the 'showEmpty' option for the axis.  Equivalent to:
+     * <pre><code>
+     *     axis.setOption("showEmpty", false);
+     * </code></pre>
+     * Whether to show the axis line and title when the axis has no data. Defaults to true.
+     * @param showEmpty 'true' to show the axis line when the axis has no data (default,) false
+     *                  to hide the axis line when the series has no data
+     * @return A reference to this {@link Axis} instance for convenient method chaining.
+     */
+    public T setShowEmpty(boolean showEmpty) {
+        return this.setOption("showEmpty", showEmpty);
+    }
+
+    /**
      * Convenience method for setting the 'showFirstLabel' option for the axis.  Equivalent to:
      * <pre><code>
      *     axis.setOption("showFirstLabel", false);
@@ -1199,6 +1213,37 @@ public abstract class Axis<T extends Axis> extends Configurable<T> {
         return getThis();
     }
 
+    /**
+     * Update an axis object with a new set of options. The options are merged with the existing options, so only new
+     * or altered options need to be specified.
+     * @param axisOptions The new options that will be merged in with existing options on the axis.
+     * @return A reference to this {@link Axis} instance for convenient method chaining.
+     * @since 1.6.1
+     */
+    public T update(Axis axisOptions) {
+        return this.update(axisOptions, true);
+    }
+
+    /**
+     * Update an axis object with a new set of options. The options are merged with the existing options, so only new
+     * or altered options need to be specified.
+     * @param axisOptions The new options that will be merged in with existing options on the axis.
+     * @param redraw Defaults to true. Whether to redraw the chart after the new options are set.
+     * @return A reference to this {@link Axis} instance for convenient method chaining.
+     * @since 1.6.1
+     */
+    public T update(Axis axisOptions, boolean redraw) {
+        JavaScriptObject nativeAxis = getNativeAxis();
+        if (nativeAxis != null) {
+            nativeUpdateAxis(nativeAxis, convertAxisToJavaScriptObject(axisOptions), redraw);
+        }
+        return getThis();
+    }
+
+    private JavaScriptObject convertAxisToJavaScriptObject(Axis axis) {
+        final JSONObject options = axis.getOptions() != null ? axis.getOptions() : new JSONObject();
+        return options.getJavaScriptObject();
+    }
 
     // Handle the unchecked cast limitation with generics in one place
     private T getThis() {
@@ -1237,5 +1282,9 @@ public abstract class Axis<T extends Axis> extends Configurable<T> {
 
     private native void nativeSetTitle(JavaScriptObject axis, JavaScriptObject titleOptions, boolean redraw)/*-{
         axis.setTitle(titleOptions, redraw);
+    }-*/;
+
+    private native void nativeUpdateAxis(JavaScriptObject axis, JavaScriptObject axisOptions, boolean redraw) /*-{
+        axis.update(axisOptions, redraw);
     }-*/;
 }
